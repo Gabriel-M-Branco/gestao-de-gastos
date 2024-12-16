@@ -140,7 +140,7 @@ elif selected == "Orçamento":
 
 elif selected == "Lançamentos":
     st.subheader("Registrar Lançamento")
-    tipo_lancamento = st.selectbox("Tipo de lançamento", ["Despesa", "Receita", "Investimento"])
+    tipo_lancamento = st.selectbox("Tipo de lançamento", ["Gastos", "Receitas", "Investimentos"])
     valor = st.number_input("Valor", min_value=0.01, step=0.01)
     categoria = st.selectbox("Categoria", dados["categorias"][tipo_lancamento.lower()] if dados["categorias"][tipo_lancamento.lower()] else ["Nenhuma categoria cadastrada"])
     descricao = st.text_area("Descrição do lançamento", "")
