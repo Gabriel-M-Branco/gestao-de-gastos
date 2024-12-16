@@ -12,19 +12,20 @@ def carregar_categorias():
             return json.load(file)
     return {"categorias": {"receitas": [], "gastos": [], "investimentos": []}}
 
+
 def salvar_categorias(dados):
     with open(CATEGORIAS_JSON, "w", encoding="utf-8") as arquivo_json:
         json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
 
+
 def excluir_categoria(tipo, categoria):
-    dados = carregar_categorias()
-    if categoria in dados["categorias"][tipo]:
-        dados["categorias"][tipo].remove(categoria)
-        salvar_categorias(dados)
+    categorias = carregar_categorias()
+    if categoria in categorias["categorias"][tipo]:
+        categorias["categorias"][tipo].remove(categoria)
+        salvar_categorias(categorias)
         return True
     return False
     
-
 
 def carregar_lancamentos():
     if os.path.exists(LANCAMENTOS_JSON):
@@ -32,17 +33,22 @@ def carregar_lancamentos():
             return json.load(file)
     return {"categorias": {"receitas": [], "gastos": [], "investimentos": []}}
 
+
 def salvar_lancamentos(dados):
     with open(CATEGORIAS_JSON, "w", encoding="utf-8") as arquivo_json:
         json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
 
+
 def excluir_lancamentos(tipo, categoria):
-    dados = carregar_lancamentos()
-    if categoria in dados["categorias"][tipo]:
-        dados["categorias"][tipo].remove(categoria)
-        salvar_lancamentos(dados)
+    categorias = carregar_lancamentos()
+    if categoria in categorias["categorias"][tipo]:
+        categorias["categorias"][tipo].remove(categoria)
+        salvar_lancamentos(categorias)
         return True
     return False
+
+
+categorias = carregar_categorias()
 
 st.markdown(
     """
@@ -79,11 +85,11 @@ if selected == "Categorias":
     st.subheader("Categorias de Receitas")
     nova_receita = st.text_input("Adicionar nova categoria de Receita")
     if st.button("Adicionar Receita"):
-        if nova_receita and nova_receita not in dados["categorias"]["receitas"]:
-            dados["categorias"]["receitas"].append(nova_receita)
-            salvar_dados(dados)
+        if nova_receita not in categorias["categorias"]["receitas"]:
+            categorias["categorias"]["receitas"].append(nova_receita)
+            salvar_categorias(categorias)
             st.success(f"Categoria '{nova_receita}' adicionada com sucesso!")
-        elif nova_receita in dados["categorias"]["receitas"]:
+        elif nova_receita in categorias["categorias"]["receitas"]:
             st.warning("Essa categoria já existe!")
         else:
             st.error("O campo não pode estar vazio!")
@@ -91,11 +97,11 @@ if selected == "Categorias":
     st.subheader("Categorias de Gastos")
     novo_gasto = st.text_input("Adicionar nova categoria de Gasto")
     if st.button("Adicionar Gasto"):
-        if novo_gasto and novo_gasto not in dados["categorias"]["gastos"]:
-            dados["categorias"]["gastos"].append(novo_gasto)
-            salvar_dados(dados)
+        if novo_gasto and novo_gasto not in categorias["categorias"]["gastos"]:
+            categorias["categorias"]["gastos"].append(novo_gasto)
+            salvar_categorias(categorias)
             st.success(f"Categoria '{novo_gasto}' adicionada com sucesso!")
-        elif novo_gasto in dados["categorias"]["gastos"]:
+        elif novo_gasto in categorias["categorias"]["gastos"]:
             st.warning("Essa categoria já existe!")
         else:
             st.error("O campo não pode estar vazio!")
@@ -103,18 +109,18 @@ if selected == "Categorias":
     st.subheader("Categorias de Investimentos")
     novo_investimento = st.text_input("Adicionar nova categoria de Investimento")
     if st.button("Adicionar Investimento"):
-        if novo_investimento and novo_investimento not in dados["categorias"]["investimentos"]:
-            dados["categorias"]["investimentos"].append(novo_investimento)
-            salvar_dados(dados)
+        if novo_investimento and novo_investimento not in categorias["categorias"]["investimentos"]:
+            categorias["categorias"]["investimentos"].append(novo_investimento)
+            salvar_categorias(categorias)
             st.success(f"Categoria '{novo_investimento}' adicionada com sucesso!")
-        elif novo_investimento in dados["categorias"]["investimentos"]:
+        elif novo_investimento in categorias["categorias"]["investimentos"]:
             st.warning("Essa categoria já existe!")
         else:
             st.error("O campo não pode estar vazio!")
 
     st.write("### Categorias Salvas:")
     
-    for tipo, categorias in dados["categorias"].items():
+    for tipo, categorias in categorias["categorias"].items():
         if categorias:
             st.markdown(f"#### {tipo.capitalize()}")
             colunas = st.columns(3)
@@ -136,18 +142,18 @@ if selected == "Categorias":
 
 elif selected == "Orçamento":
     st.subheader("Defina seu orçamento para Gastos")
-    categorias = dados["categorias"]["gastos"]
-    if not categorias:
+    categorias_gastos = categorias["categorias"]["gastos"]
+    if not categorias_gastos:
         st.warning("Nenhuma categoria de gastos cadastrada. Adicione em Configurações.")
     else:
         orcamento = {}
-        for categoria in categorias:
+        for categoria in categorias_gastos:
             orcamento[categoria] = st.number_input(f"Orçamento para {categoria}", min_value=0, step=100)
         total_orcamento = sum(orcamento.values())
         st.write(f"Total do orçamento: R${total_orcamento}")
     
     st.subheader("Defina seu orçamento para Investimentos")
-    categorias_investimentos = dados["categorias"]["investimentos"]
+    categorias_investimentos = categorias["categorias"]["investimentos"]
     if not categorias_investimentos:
         st.warning("Nenhuma categoria de investimentos cadastrada. Adicione em Configurações.")
     else:
@@ -161,13 +167,25 @@ elif selected == "Lançamentos":
     st.subheader("Registrar Lançamento")
     tipo_lancamento = st.selectbox("Tipo de lançamento", ["Gastos", "Receitas", "Investimentos"])
     valor = st.number_input("Valor", min_value=0.01, step=0.01)
-    categoria = st.selectbox("Categoria", dados["categorias"][tipo_lancamento.lower()] if dados["categorias"][tipo_lancamento.lower()] else ["Nenhuma categoria cadastrada"])
+    categoria = st.selectbox("Categoria", categorias["categorias"][tipo_lancamento.lower()] if categorias["categorias"][tipo_lancamento.lower()] else ["Nenhuma categoria cadastrada"])
     descricao = st.text_area("Descrição do lançamento", "")
 
     if st.button("Registrar lançamento"):
         if categoria == "Nenhuma categoria cadastrada":
             st.error("Adicione categorias primeiro na aba Configurações.")
         else:
+            lancamentos = carregar_lancamentos()
+
+            novo_lancamento = {
+                "tipo": tipo_lancamento,
+                "valor": valor,
+                "categoria": categoria,
+                "descricao": descricao,
+                "data": st.date_input("Data do lançamento")  # Adicionando a data do lançamento
+            }
+
+            lancamentos["lancamentos"].append(novo_lancamento)
+            salvar_lancamentos(lancamentos)
             st.success(f"Você registrou um {tipo_lancamento.lower()} de R${valor} na categoria {categoria}.")
 
 elif selected == "Dashboard":
