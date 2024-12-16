@@ -4,26 +4,45 @@ import json
 import os
 
 CATEGORIAS_JSON = "dados.json"
+LANCAMENTOS_JSON = "lancamentos.json"
 
-def carregar_dados():
+def carregar_categorias():
     if os.path.exists(CATEGORIAS_JSON):
         with open(CATEGORIAS_JSON, "r", encoding="utf-8") as file:
             return json.load(file)
     return {"categorias": {"receitas": [], "gastos": [], "investimentos": []}}
 
-def salvar_dados(dados):
+def salvar_categorias(dados):
     with open(CATEGORIAS_JSON, "w", encoding="utf-8") as arquivo_json:
         json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
 
 def excluir_categoria(tipo, categoria):
-    dados = carregar_dados()
+    dados = carregar_categorias()
     if categoria in dados["categorias"][tipo]:
         dados["categorias"][tipo].remove(categoria)
-        salvar_dados(dados)
+        salvar_categorias(dados)
         return True
     return False
     
-dados = carregar_dados()
+
+
+def carregar_lancamentos():
+    if os.path.exists(LANCAMENTOS_JSON):
+        with open(LANCAMENTOS_JSON, "r", encoding="utf-8") as file:
+            return json.load(file)
+    return {"categorias": {"receitas": [], "gastos": [], "investimentos": []}}
+
+def salvar_lancamentos(dados):
+    with open(CATEGORIAS_JSON, "w", encoding="utf-8") as arquivo_json:
+        json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
+
+def excluir_lancamentos(tipo, categoria):
+    dados = carregar_lancamentos()
+    if categoria in dados["categorias"][tipo]:
+        dados["categorias"][tipo].remove(categoria)
+        salvar_lancamentos(dados)
+        return True
+    return False
 
 st.markdown(
     """
