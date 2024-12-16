@@ -1,13 +1,19 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-import matplotlib.pyplot as plt
+
+st.markdown(
+    """
+    <style>
+    .block-container {
+        max-width: 80% !important;
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
 
 selected = option_menu(None, ["Configurações", "Orçamento", "Lançamentos", 'Dashboard', 'Relatórios'], 
     icons=['sliders', 'cash', "list-ul", 'graph-up', 'file-earmark-bar-graph'], 
-    default_index=0, orientation="horizontal",
-    styles={
-        "container": {"max-width": "680px!important"}
-    })
+    default_index=0, orientation="horizontal")
 
 
 if selected == "Configurações":
