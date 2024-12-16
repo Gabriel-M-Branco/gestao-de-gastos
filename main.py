@@ -3,16 +3,16 @@ from streamlit_option_menu import option_menu
 import json
 import os
 
-ARQUIVO_JSON = "dados.json"
+CATEGORIAS_JSON = "dados.json"
 
 def carregar_dados():
-    if os.path.exists(ARQUIVO_JSON):
-        with open(ARQUIVO_JSON, "r", encoding="utf-8") as file:
+    if os.path.exists(CATEGORIAS_JSON):
+        with open(CATEGORIAS_JSON, "r", encoding="utf-8") as file:
             return json.load(file)
     return {"categorias": {"receitas": [], "gastos": [], "investimentos": []}}
 
 def salvar_dados(dados):
-    with open(ARQUIVO_JSON, "w", encoding="utf-8") as arquivo_json:
+    with open(CATEGORIAS_JSON, "w", encoding="utf-8") as arquivo_json:
         json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
 
 def excluir_categoria(tipo, categoria):
