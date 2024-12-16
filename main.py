@@ -51,12 +51,12 @@ st.markdown(
 )
 
 selected = option_menu(
-    None, ["Configurações", "Orçamento", "Lançamentos", 'Dashboard', 'Relatórios'], 
-    icons=['sliders', 'cash', "list-ul", 'graph-up', 'file-earmark-bar-graph'], 
+    None, ["Categorias", "Orçamento", "Lançamentos", 'Dashboard', 'Relatórios'], 
+    icons=['bi-tags', 'cash', "list-ul", 'graph-up', 'file-earmark-bar-graph'], 
     default_index=0, orientation="horizontal"
 )
 
-if selected == "Configurações":
+if selected == "Categorias":
     st.subheader("Categorias de Receitas")
     nova_receita = st.text_input("Adicionar nova categoria de Receita")
     if st.button("Adicionar Receita"):
@@ -106,7 +106,7 @@ if selected == "Configurações":
             categoria_excluir = st.selectbox(f"Selecione a categoria de {tipo} que deseja excluir", categorias, key=f"excluir_{tipo}")
             
             if categoria_excluir:
-                if st.button(f"Confirmar exclusão de '{categoria_excluir}'", key=f"excluir_btn_{categoria_excluir}"):
+                if st.button(f'Excluir', key=f"excluir_btn_{categoria_excluir}"):
                     if excluir_categoria(tipo, categoria_excluir):
                         st.success(f"Categoria '{categoria_excluir}' excluída com sucesso!")
                         st.rerun()
@@ -116,16 +116,27 @@ if selected == "Configurações":
             st.write(f"Nenhuma categoria de **{tipo}** cadastrada.")
 
 elif selected == "Orçamento":
-    st.subheader("Defina seu orçamento para cada categoria")
+    st.subheader("Defina seu orçamento para Gastos")
     categorias = dados["categorias"]["gastos"]
     if not categorias:
-        st.warning("Nenhuma categoria de gasto cadastrada. Adicione em Configurações.")
+        st.warning("Nenhuma categoria de gastos cadastrada. Adicione em Configurações.")
     else:
         orcamento = {}
         for categoria in categorias:
             orcamento[categoria] = st.number_input(f"Orçamento para {categoria}", min_value=0, step=100)
         total_orcamento = sum(orcamento.values())
         st.write(f"Total do orçamento: R${total_orcamento}")
+    
+    st.subheader("Defina seu orçamento para Investimentos")
+    categorias_investimentos = dados["categorias"]["investimentos"]
+    if not categorias_investimentos:
+        st.warning("Nenhuma categoria de investimentos cadastrada. Adicione em Configurações.")
+    else:
+        investimentos = {}
+        for categoria in categorias_investimentos:
+            investimentos[categoria] = st.number_input(f"Investimento para {categoria}", min_value=0, step=100)
+        total_investimentos = sum(investimentos.values())
+        st.write(f"Total investido: R${total_investimentos}")
 
 elif selected == "Lançamentos":
     st.subheader("Registrar Lançamento")
