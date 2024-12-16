@@ -1,0 +1,14 @@
+{
+    "categorias": {
+        "receitas": [
+            "Teste"
+        ],
+        "gastos": [
+            "Gastos Teste",
+            "Gastos Cachorro"
+        ],
+        "investimentos": [
+            "Poupanca"
+        ]
+    }
+}
