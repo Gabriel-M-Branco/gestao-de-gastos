@@ -15,6 +15,25 @@ def salvar_dados(dados):
     with open(ARQUIVO_JSON, "w", encoding="utf-8") as arquivo_json:
         json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
 
+def editar_categoria(tipo, categoria_antiga, nova_categoria):
+    dados = carregar_dados()
+    if categoria_antiga in dados["categorias"][tipo]:
+        index = dados["categorias"][tipo].index(categoria_antiga)
+        dados["categorias"][tipo][index] = nova_categoria
+        salvar_dados(dados)
+        return f"Categoria '{categoria_antiga}' foi alterada para '{nova_categoria}' com sucesso!"
+    return f"A categoria '{categoria_antiga}' não foi encontrada em {tipo}."
+
+def excluir_categoria(tipo, categoria):
+    """Exclui uma categoria do tipo (receitas, gastos, investimentos)."""
+    dados = carregar_dados()
+    if categoria in dados["categorias"][tipo]:
+        dados["categorias"][tipo].remove(categoria)
+        salvar_dados(dados)
+        return f"Categoria '{categoria}' removida com sucesso!"
+    else:
+        return f"A categoria '{categoria}' não foi encontrada em {tipo}."
+    
 dados = carregar_dados()
 
 st.markdown(
@@ -23,6 +42,19 @@ st.markdown(
     .block-container {
         padding: 45px 0;
         max-width: 80% !important;
+    }
+    .card {
+        border-radius: 10px;
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        margin: 10px 0;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+    }
+    h4 a, h3 a, h2 a {
+            display: none !important;
     }
     </style>
     """, unsafe_allow_html=True
@@ -36,7 +68,7 @@ selected = option_menu(
 
 if selected == "Configurações":
     st.subheader("Categorias de Receitas")
-    nova_receita = st.text_input("Adicionar nova categoria de Receita", "")
+    nova_receita = st.text_input("Adicionar nova categoria de Receita")
     if st.button("Adicionar Receita"):
         if nova_receita and nova_receita not in dados["categorias"]["receitas"]:
             dados["categorias"]["receitas"].append(nova_receita)
@@ -48,7 +80,7 @@ if selected == "Configurações":
             st.error("O campo não pode estar vazio!")
 
     st.subheader("Categorias de Gastos")
-    novo_gasto = st.text_input("Adicionar nova categoria de Gasto", "")
+    novo_gasto = st.text_input("Adicionar nova categoria de Gasto")
     if st.button("Adicionar Gasto"):
         if novo_gasto and novo_gasto not in dados["categorias"]["gastos"]:
             dados["categorias"]["gastos"].append(novo_gasto)
@@ -60,7 +92,7 @@ if selected == "Configurações":
             st.error("O campo não pode estar vazio!")
 
     st.subheader("Categorias de Investimentos")
-    novo_investimento = st.text_input("Adicionar nova categoria de Investimento", "")
+    novo_investimento = st.text_input("Adicionar nova categoria de Investimento")
     if st.button("Adicionar Investimento"):
         if novo_investimento and novo_investimento not in dados["categorias"]["investimentos"]:
             dados["categorias"]["investimentos"].append(novo_investimento)
@@ -72,7 +104,23 @@ if selected == "Configurações":
             st.error("O campo não pode estar vazio!")
 
     st.write("### Categorias Salvas:")
-    st.write(dados["categorias"])
+    
+    for tipo, categorias in dados["categorias"].items():
+        if categorias:
+            st.markdown(f"#### {tipo.capitalize()}")
+            colunas = st.columns(3)
+            for i, categoria in enumerate(categorias):
+                with colunas[i % 3]:
+                    st.markdown(f"<div class='card'>{categoria}</div>", unsafe_allow_html=True)
+                    
+                    if st.button(f"Editar '{categoria}' de {tipo}"):
+                        nova_categoria = st.text_input(f"Editar categoria '{categoria}'", value=categoria)
+                        if st.button(f"Salvar alterações para '{categoria}'"):
+                            resultado = editar_categoria(tipo, categoria, nova_categoria)
+                            st.success(resultado)
+                            break
+        else:
+            st.write(f"Nenhuma categoria de **{tipo}** cadastrada.")
 
 elif selected == "Orçamento":
     st.subheader("Defina seu orçamento para cada categoria")
