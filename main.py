@@ -15,24 +15,13 @@ def salvar_dados(dados):
     with open(ARQUIVO_JSON, "w", encoding="utf-8") as arquivo_json:
         json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
 
-def editar_categoria(tipo, categoria_antiga, nova_categoria):
-    dados = carregar_dados()
-    if categoria_antiga in dados["categorias"][tipo]:
-        index = dados["categorias"][tipo].index(categoria_antiga)
-        dados["categorias"][tipo][index] = nova_categoria
-        salvar_dados(dados)
-        return f"Categoria '{categoria_antiga}' foi alterada para '{nova_categoria}' com sucesso!"
-    return f"A categoria '{categoria_antiga}' não foi encontrada em {tipo}."
-
 def excluir_categoria(tipo, categoria):
-    """Exclui uma categoria do tipo (receitas, gastos, investimentos)."""
     dados = carregar_dados()
     if categoria in dados["categorias"][tipo]:
         dados["categorias"][tipo].remove(categoria)
         salvar_dados(dados)
-        return f"Categoria '{categoria}' removida com sucesso!"
-    else:
-        return f"A categoria '{categoria}' não foi encontrada em {tipo}."
+        return True
+    return False
     
 dados = carregar_dados()
 
@@ -112,13 +101,16 @@ if selected == "Configurações":
             for i, categoria in enumerate(categorias):
                 with colunas[i % 3]:
                     st.markdown(f"<div class='card'>{categoria}</div>", unsafe_allow_html=True)
-                    
-                    if st.button(f"Editar '{categoria}' de {tipo}"):
-                        nova_categoria = st.text_input(f"Editar categoria '{categoria}'", value=categoria)
-                        if st.button(f"Salvar alterações para '{categoria}'"):
-                            resultado = editar_categoria(tipo, categoria, nova_categoria)
-                            st.success(resultado)
-                            break
+
+            categoria_excluir = st.selectbox(f"Selecione a categoria de {tipo} que deseja excluir", categorias, key=f"excluir_{tipo}")
+            
+            if categoria_excluir:
+                if st.button(f"Confirmar exclusão de '{categoria_excluir}'", key=f"excluir_btn_{categoria_excluir}"):
+                    if excluir_categoria(tipo, categoria_excluir):
+                        st.success(f"Categoria '{categoria_excluir}' excluída com sucesso!")
+                        st.rerun()
+                    else:
+                        st.error(f"A categoria '{categoria_excluir}' não foi encontrada em {tipo}.")
         else:
             st.write(f"Nenhuma categoria de **{tipo}** cadastrada.")
 

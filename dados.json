@@ -1,13 +1,9 @@
 {
     "categorias": {
         "receitas": [
-            "Teste",
             "asdaqs"
         ],
-        "gastos": [
-            "Gastos Teste",
-            "Gastos Cachorro"
-        ],
+        "gastos": [],
         "investimentos": [
             "Poupanca"
         ]
