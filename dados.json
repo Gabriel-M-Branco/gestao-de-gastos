@@ -1,11 +1,16 @@
 {
     "categorias": {
         "receitas": [
-            "asdaqs"
+            "asdaqs",
+            "teste"
         ],
-        "gastos": [],
+        "gastos": [
+            "teste2",
+            "teste3"
+        ],
         "investimentos": [
-            "Poupanca"
+            "Poupanca",
+            "teste"
         ]
     }
 }

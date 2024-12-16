@@ -33,8 +33,9 @@ st.markdown(
         max-width: 80% !important;
     }
     .card {
+        color: white;
+        background-color: rgb(24, 27, 33);
         border-radius: 10px;
-        background-color: #f9f9f9;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         padding: 10px;
         margin: 10px 0;
