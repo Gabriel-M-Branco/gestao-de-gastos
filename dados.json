@@ -1,18 +1,14 @@
 {
     "categorias": {
-        "receitas": [
-            "asdaqs",
-            "teste",
-            "sadasdas",
-            "sadasdaszs"
+        "receita": [
+            "Salario",
+            "Dividendos"
         ],
-        "gastos": [
-            "teste2",
-            "teste3"
+        "gasto": [
+            "Faculdade"
         ],
-        "investimentos": [
-            "Poupanca",
-            "teste"
+        "investimento": [
+            "Ações"
         ]
     }
 }

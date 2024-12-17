@@ -10,7 +10,7 @@ def carregar_categorias():
     if os.path.exists(CATEGORIAS_JSON):
         with open(CATEGORIAS_JSON, "r", encoding="utf-8") as file:
             return json.load(file)
-    return {"categorias": {"receitas": [], "gastos": [], "investimentos": []}}
+    return {"categorias": {"receita": [], "gasto": [], "investimento": []}}
 
 
 def salvar_categorias(dados):
@@ -31,11 +31,11 @@ def carregar_lancamentos():
     if os.path.exists(LANCAMENTOS_JSON):
         with open(LANCAMENTOS_JSON, "r", encoding="utf-8") as file:
             return json.load(file)
-    return {"categorias": {"receitas": [], "gastos": [], "investimentos": []}}
+    return {"categorias": {"receita": [], "gasto": [], "investimento": []}, "lancamento":[]}
 
 
 def salvar_lancamentos(dados):
-    with open(CATEGORIAS_JSON, "w", encoding="utf-8") as arquivo_json:
+    with open(LANCAMENTOS_JSON, "w", encoding="utf-8") as arquivo_json:
         json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
 
 
@@ -85,11 +85,11 @@ if selected == "Categorias":
     st.subheader("Categorias de Receitas")
     nova_receita = st.text_input("Adicionar nova categoria de Receita")
     if st.button("Adicionar Receita"):
-        if nova_receita not in categorias["categorias"]["receitas"]:
-            categorias["categorias"]["receitas"].append(nova_receita)
+        if nova_receita not in categorias["categorias"]["receita"]:
+            categorias["categorias"]["receita"].append(nova_receita)
             salvar_categorias(categorias)
             st.success(f"Categoria '{nova_receita}' adicionada com sucesso!")
-        elif nova_receita in categorias["categorias"]["receitas"]:
+        elif nova_receita in categorias["categorias"]["receita"]:
             st.warning("Essa categoria já existe!")
         else:
             st.error("O campo não pode estar vazio!")
@@ -97,11 +97,11 @@ if selected == "Categorias":
     st.subheader("Categorias de Gastos")
     novo_gasto = st.text_input("Adicionar nova categoria de Gasto")
     if st.button("Adicionar Gasto"):
-        if novo_gasto and novo_gasto not in categorias["categorias"]["gastos"]:
-            categorias["categorias"]["gastos"].append(novo_gasto)
+        if novo_gasto and novo_gasto not in categorias["categorias"]["gasto"]:
+            categorias["categorias"]["gasto"].append(novo_gasto)
             salvar_categorias(categorias)
             st.success(f"Categoria '{novo_gasto}' adicionada com sucesso!")
-        elif novo_gasto in categorias["categorias"]["gastos"]:
+        elif novo_gasto in categorias["categorias"]["gasto"]:
             st.warning("Essa categoria já existe!")
         else:
             st.error("O campo não pode estar vazio!")
@@ -109,11 +109,11 @@ if selected == "Categorias":
     st.subheader("Categorias de Investimentos")
     novo_investimento = st.text_input("Adicionar nova categoria de Investimento")
     if st.button("Adicionar Investimento"):
-        if novo_investimento and novo_investimento not in categorias["categorias"]["investimentos"]:
-            categorias["categorias"]["investimentos"].append(novo_investimento)
+        if novo_investimento and novo_investimento not in categorias["categorias"]["investimento"]:
+            categorias["categorias"]["investimento"].append(novo_investimento)
             salvar_categorias(categorias)
             st.success(f"Categoria '{novo_investimento}' adicionada com sucesso!")
-        elif novo_investimento in categorias["categorias"]["investimentos"]:
+        elif novo_investimento in categorias["categorias"]["investimento"]:
             st.warning("Essa categoria já existe!")
         else:
             st.error("O campo não pode estar vazio!")
@@ -142,7 +142,7 @@ if selected == "Categorias":
 
 elif selected == "Orçamento":
     st.subheader("Defina seu orçamento para Gastos")
-    categorias_gastos = categorias["categorias"]["gastos"]
+    categorias_gastos = categorias["categorias"]["gasto"]
     if not categorias_gastos:
         st.warning("Nenhuma categoria de gastos cadastrada. Adicione em Configurações.")
     else:
@@ -153,7 +153,7 @@ elif selected == "Orçamento":
         st.write(f"Total do orçamento: R${total_orcamento}")
     
     st.subheader("Defina seu orçamento para Investimentos")
-    categorias_investimentos = categorias["categorias"]["investimentos"]
+    categorias_investimentos = categorias["categorias"]["investimento"]
     if not categorias_investimentos:
         st.warning("Nenhuma categoria de investimentos cadastrada. Adicione em Configurações.")
     else:
@@ -165,14 +165,14 @@ elif selected == "Orçamento":
 
 elif selected == "Lançamentos":
     st.subheader("Registrar Lançamento")
-    tipo_lancamento = st.selectbox("Tipo de lançamento", ["Gastos", "Receitas", "Investimentos"])
+    tipo_lancamento = st.selectbox("Tipo de lançamento", ["Gasto", "Receita", "Investimento"])
     valor = st.number_input("Valor", min_value=0.01, step=0.01)
     categoria = st.selectbox("Categoria", categorias["categorias"][tipo_lancamento.lower()] if categorias["categorias"][tipo_lancamento.lower()] else ["Nenhuma categoria cadastrada"])
     descricao = st.text_area("Descrição do lançamento", "")
 
     if st.button("Registrar lançamento"):
         if categoria == "Nenhuma categoria cadastrada":
-            st.error("Adicione categorias primeiro na aba Configurações.")
+            st.error("Adicione categorias primeiro na aba Categorias.")
         else:
             lancamentos = carregar_lancamentos()
 
@@ -181,12 +181,12 @@ elif selected == "Lançamentos":
                 "valor": valor,
                 "categoria": categoria,
                 "descricao": descricao,
-                "data": st.date_input("Data do lançamento")  # Adicionando a data do lançamento
+                "data": st.date_input("Data do lançamento").isoformat()
             }
 
             lancamentos["lancamentos"].append(novo_lancamento)
             salvar_lancamentos(lancamentos)
-            st.success(f"Você registrou um {tipo_lancamento.lower()} de R${valor} na categoria {categoria}.")
+            st.success(f"Você registrou um(a) {tipo_lancamento.lower()} de R${valor} na categoria {categoria}.")
 
 elif selected == "Dashboard":
     st.subheader("Visualizações dos Dados Financeiros")
