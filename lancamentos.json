@@ -1,0 +1,18 @@
+{
+    "lancamentos": [
+        {
+            "tipo": "Gastos",
+            "valor": 0.01,
+            "categoria": "Gasto1",
+            "descricao": "",
+            "data": "2024-12-17"
+        },
+        {
+            "tipo": "Receitas",
+            "valor": 651.0,
+            "categoria": "Receita1",
+            "descricao": "fghfgdged",
+            "data": "2024-12-16"
+        }
+    ]
+}
