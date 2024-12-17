@@ -3,7 +3,7 @@ from streamlit_option_menu import option_menu
 import json
 import os
 
-CATEGORIAS_JSON = "dados.json"
+CATEGORIAS_JSON = "categorias.json"
 LANCAMENTOS_JSON = "lancamentos.json"
 
 def carregar_categorias():
@@ -31,19 +31,19 @@ def carregar_lancamentos():
     if os.path.exists(LANCAMENTOS_JSON):
         with open(LANCAMENTOS_JSON, "r", encoding="utf-8") as file:
             return json.load(file)
-    return {"categorias": {"receitas": [], "gastos": [], "investimentos": []}}
+    return {"lancamentos": []}
 
 
 def salvar_lancamentos(dados):
-    with open(CATEGORIAS_JSON, "w", encoding="utf-8") as arquivo_json:
+    with open(LANCAMENTOS_JSON, "w", encoding="utf-8") as arquivo_json:
         json.dump(dados, arquivo_json, indent=4, ensure_ascii=False)
 
 
-def excluir_lancamentos(tipo, categoria):
-    categorias = carregar_lancamentos()
-    if categoria in categorias["categorias"][tipo]:
-        categorias["categorias"][tipo].remove(categoria)
-        salvar_lancamentos(categorias)
+def excluir_lancamentos(tipo, lancamento):
+    lancamentos = carregar_lancamentos()
+    if lancamento in lancamentos["lancamentos"][tipo]:
+        lancamentos["lancamentos"][tipo].remove(lancamento)
+        salvar_lancamentos(lancamentos)
         return True
     return False
 
@@ -167,8 +167,12 @@ elif selected == "Lançamentos":
     st.subheader("Registrar Lançamento")
     tipo_lancamento = st.selectbox("Tipo de lançamento", ["Gastos", "Receitas", "Investimentos"])
     valor = st.number_input("Valor", min_value=0.01, step=0.01)
-    categoria = st.selectbox("Categoria", categorias["categorias"][tipo_lancamento.lower()] if categorias["categorias"][tipo_lancamento.lower()] else ["Nenhuma categoria cadastrada"])
+    categoria = st.selectbox(
+        "Categoria", 
+        categorias["categorias"].get(tipo_lancamento.lower(), ["Nenhuma categoria cadastrada"])
+    )
     descricao = st.text_area("Descrição do lançamento", "")
+    data = str(st.date_input("Data do lançamento"))
 
     if st.button("Registrar lançamento"):
         if categoria == "Nenhuma categoria cadastrada":
@@ -181,7 +185,7 @@ elif selected == "Lançamentos":
                 "valor": valor,
                 "categoria": categoria,
                 "descricao": descricao,
-                "data": st.date_input("Data do lançamento")  # Adicionando a data do lançamento
+                "data": data
             }
 
             lancamentos["lancamentos"].append(novo_lancamento)

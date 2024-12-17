@@ -1,0 +1,13 @@
+{
+    "categorias": {
+        "receitas": [
+            "Receita1"
+        ],
+        "gastos": [
+            "Gasto1"
+        ],
+        "investimentos": [
+            "Investimento1"
+        ]
+    }
+}
