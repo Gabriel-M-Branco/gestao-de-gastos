@@ -1,14 +1,11 @@
 {
     "categorias": {
         "receita": [
-            "Salario",
-            "Dividendos"
+            "Salario"
         ],
         "gasto": [
             "Faculdade"
         ],
-        "investimento": [
-            "Ações"
-        ]
+        "investimento": []
     }
 }

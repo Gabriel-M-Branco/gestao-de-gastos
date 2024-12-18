@@ -2,38 +2,24 @@
     "lancamentos": [
         {
             "tipo": "Gasto",
-            "valor": 500.0,
+            "valor": 400,
             "categoria": "Faculdade",
-            "descricao": "mensalidade",
-            "data": "2024-12-17"
+            "descricao": "",
+            "data": "2024-12-18"
         },
         {
             "tipo": "Receita",
-            "valor": 10000.0,
+            "valor": 500,
             "categoria": "Salario",
             "descricao": "",
-            "data": "2024-12-17"
-        },
-        {
-            "tipo": "Investimento",
-            "valor": 1000.0,
-            "categoria": "Ações",
-            "descricao": "",
-            "data": "2024-12-17"
+            "data": "2024-12-18"
         },
         {
             "tipo": "Gasto",
-            "valor": 550.0,
+            "valor": 500.0,
             "categoria": "Faculdade",
-            "descricao": "mensaliadade mes 12",
-            "data": "2024-12-17"
-        },
-        {
-            "tipo": "Receita",
-            "valor": 10000.0,
-            "categoria": "Salario",
             "descricao": "",
-            "data": "2024-12-17"
+            "data": "2024-12-18"
         }
     ]
 }
