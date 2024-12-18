@@ -1,7 +1,11 @@
 import streamlit as st
-from streamlit_option_menu import option_menu
+import pandas as pd
 import json
 import os
+import uuid
+from streamlit_option_menu import option_menu
+import plotly.express as px
+
 
 CATEGORIAS_JSON = "categorias.json"
 LANCAMENTOS_JSON = "lancamentos.json"
@@ -47,9 +51,6 @@ def excluir_lancamentos(tipo, lancamento):
         return True
     return False
 
-
-categorias = carregar_categorias()
-
 st.markdown(
     """
     <style>
@@ -82,6 +83,8 @@ selected = option_menu(
 )
 
 if selected == "Categorias":
+    categorias = carregar_categorias()
+
     st.subheader("Categorias de Receitas")
     nova_receita = st.text_input("Adicionar nova categoria de Receita")
     if st.button("Adicionar Receita"):
@@ -141,6 +144,8 @@ if selected == "Categorias":
             st.write(f"Nenhuma categoria de **{tipo}** cadastrada.")
 
 elif selected == "Orçamento":
+    categorias = carregar_categorias()
+
     st.subheader("Defina seu orçamento para Gastos")
     categorias_gastos = categorias["categorias"]["gastos"]
     if not categorias_gastos:
@@ -164,15 +169,26 @@ elif selected == "Orçamento":
         st.write(f"Total investido: R${total_investimentos}")
 
 elif selected == "Lançamentos":
+    categorias = carregar_categorias()
+    lancamentos = carregar_lancamentos()
+
     st.subheader("Registrar Lançamento")
     tipo_lancamento = st.selectbox("Tipo de lançamento", ["Gastos", "Receitas", "Investimentos"])
-    valor = st.number_input("Valor", min_value=0.01, step=0.01)
+    valor = st.number_input("Valor", min_value=0.0, step=1.0)
     categoria = st.selectbox(
         "Categoria", 
         categorias["categorias"].get(tipo_lancamento.lower(), ["Nenhuma categoria cadastrada"])
     )
     descricao = st.text_area("Descrição do lançamento", "")
-    data = str(st.date_input("Data do lançamento"))
+    data = st.date_input("Data do lançamento")
+    data_formatada = data.strftime('%Y-%m-%d')
+
+    if tipo_lancamento == "Investimentos":
+        taxa_rendimento = st.number_input("Taxa de Rendimento (%)", min_value=0.0, step=0.1)
+        meses = st.number_input("Meses para o investimento", min_value=1, step=1)
+    else:
+        taxa_rendimento = None
+        meses = None
 
     if st.button("Registrar lançamento"):
         if categoria == "Nenhuma categoria cadastrada":
@@ -180,21 +196,247 @@ elif selected == "Lançamentos":
         else:
             lancamentos = carregar_lancamentos()
 
+            novo_id = str(uuid.uuid4())
+
             novo_lancamento = {
+                "id": novo_id,
                 "tipo": tipo_lancamento,
                 "valor": valor,
                 "categoria": categoria,
                 "descricao": descricao,
-                "data": data
+                "data": data_formatada,
+                "taxa_rendimento": taxa_rendimento,
+                "meses": meses
             }
 
             lancamentos["lancamentos"].append(novo_lancamento)
             salvar_lancamentos(lancamentos)
             st.success(f"Você registrou um {tipo_lancamento.lower()} de R${valor} na categoria {categoria}.")
+    
+    lancamentos = carregar_lancamentos()
+    st.title("Histórico de Lançamentos")
+    
+    if not lancamentos["lancamentos"]:
+        st.warning("Nenhum lançamento registrado até o momento.")
+    else:
+        st.subheader("Lançamentos Salvos")
+
+        df = pd.DataFrame(lancamentos["lancamentos"])
+        
+        df.set_index('id', inplace=True)
+
+        # Formatação das colunas
+        st.dataframe(df.style.format({
+            "valor": "R$ {:.2f}",
+            "data": lambda x: pd.to_datetime(x).strftime('%d/%m/%Y'),
+            "taxa_rendimento": lambda x: f"{x:.2f}%" if pd.notna(x) else "-",
+            "meses": lambda x: x if pd.notna(x) else "-"
+        }), use_container_width=True)
+
+    st.subheader("Excluir Lançamentos")
+    lancamentos = carregar_lancamentos()
+
+    if not lancamentos["lancamentos"]:
+        st.warning("Nenhum lançamento registrado até o momento.")
+    else:
+        lancamentos_por_categoria = {}
+        for lancamento in lancamentos["lancamentos"]:
+            categoria = lancamento["categoria"]
+            if categoria not in lancamentos_por_categoria:
+                lancamentos_por_categoria[categoria] = []
+            lancamentos_por_categoria[categoria].append(lancamento)
+
+        for categoria, lista_lancamentos in lancamentos_por_categoria.items():
+            st.markdown(f"### Categoria: {categoria}")
+            
+            ids_lancamentos = [lancamento["id"] for lancamento in lista_lancamentos]
+            
+            lancamento_excluir_id = st.selectbox(
+                f"Selecione o ID de um lançamento de {categoria} para excluir",
+                ids_lancamentos,
+                key=f"excluir_{categoria}"
+            )
+
+            if lancamento_excluir_id:
+                if st.button(f'Excluir lançamento com ID {lancamento_excluir_id}', key=f"excluir_btn_{lancamento_excluir_id}"):
+                    lancamentos["lancamentos"] = [l for l in lancamentos["lancamentos"] if l["id"] != lancamento_excluir_id]
+                    salvar_lancamentos(lancamentos)
+                    st.success(f"Lançamento com ID {lancamento_excluir_id} excluído com sucesso!")
+                    st.rerun()
+
 
 elif selected == "Dashboard":
-    st.subheader("Visualizações dos Dados Financeiros")
-    st.write("Aqui você pode ver gráficos e estatísticas baseados nos seus dados financeiros.")
+    dados_lancamentos = carregar_lancamentos()
+    dados_categorias = carregar_categorias()
+
+    lancamentos = pd.DataFrame(dados_lancamentos["lancamentos"])
+    lancamentos["data"] = pd.to_datetime(lancamentos["data"])
+
+    st.title("Dashboard de Lançamentos")
+
+    st.sidebar.header("Filtros")
+
+    tipo_filter = st.sidebar.multiselect(
+        "Filtrar por Tipo:",
+        options=lancamentos["tipo"].unique(),
+        default=lancamentos["tipo"].unique()
+    )
+
+    if tipo_filter:
+        categorias_filtradas = dados_categorias["categorias"]
+        categorias_selecionadas = []
+        
+        for tipo in tipo_filter:
+            categorias_selecionadas.extend(categorias_filtradas[tipo.lower()])
+        
+        categorias_selecionadas = list(set(categorias_selecionadas))
+
+        categoria_filter = st.sidebar.multiselect(
+            "Filtrar por Categoria:",
+            options=categorias_selecionadas,
+            default=categorias_selecionadas
+        )
+    else:
+        categoria_filter = st.sidebar.multiselect(
+            "Filtrar por Categoria:",
+            options=lancamentos["categoria"].unique(),
+            default=lancamentos["categoria"].unique()
+        )
+
+    date_range = st.sidebar.date_input(
+        "Filtrar por Intervalo de Datas:",
+        [lancamentos["data"].min(), lancamentos["data"].max()]
+    )
+
+    filtered_data = lancamentos[
+        (lancamentos["tipo"].isin(tipo_filter)) &
+        (lancamentos["categoria"].isin(categoria_filter)) &
+        (lancamentos["data"] >= pd.Timestamp(date_range[0])) &
+        (lancamentos["data"] <= pd.Timestamp(date_range[1]))
+    ]
+
+    st.subheader("Dados Filtrados")
+    filtered_data = filtered_data.reset_index(drop=True)
+    filtered_data.index += 1
+
+    tem_investimentos = filtered_data["tipo"].str.contains("Investimentos").any()
+
+    if tem_investimentos:
+        st.dataframe(filtered_data.style.format({
+            "valor": "R$ {:.2f}",
+            "data": lambda x: pd.to_datetime(x).strftime('%d/%m/%Y'),
+            "taxa_rendimento": lambda x: f"{x:.2f}%" if pd.notna(x) else "-",
+            "meses": lambda x: x if pd.notna(x) else "-"
+        }), use_container_width=True)
+    else:
+        filtered_data = filtered_data.loc[:, ~filtered_data.columns.isin(['taxa_rendimento', 'meses'])]
+        st.dataframe(filtered_data.style.format({
+            "valor": "R$ {:.2f}",
+            "data": lambda x: pd.to_datetime(x).strftime('%d/%m/%Y'),
+        }), use_container_width=True)
+
+    st.subheader("Resumo")
+    col1, col2 = st.columns(2)
+    with col1:
+        total_valor = filtered_data["valor"].sum()
+        st.metric(label="Total (R$)", value=f"{total_valor:,.2f}")
+    with col2:
+        valor_medio = round(filtered_data["valor"].mean(), 2)
+        st.metric(label="Valor Médio (R$)", value=valor_medio)
+
+    st.write("") 
+    st.write("") 
+
+    st.subheader("Distribuição Financeira")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if not filtered_data.empty:
+            gastos_data = filtered_data[filtered_data["tipo"] == "Gastos"]
+            pie_chart_gastos = px.pie(
+                gastos_data,
+                names="categoria",
+                values="valor",
+                title="Distribuição de Gastos por Categoria",
+                labels={"categoria": "Categoria", "valor": "Valor (R$)"},
+                hole=0.4
+            )
+            st.plotly_chart(pie_chart_gastos, use_container_width=True)
+
+    with col2:
+        if not filtered_data.empty:
+            receitas_data = filtered_data[filtered_data["tipo"] == "Receitas"]
+            pie_chart_receitas = px.pie(
+                receitas_data,
+                names="categoria",
+                values="valor",
+                title="Distribuição de Receitas por Categoria",
+                labels={"categoria": "Categoria", "valor": "Valor (R$)"},
+                hole=0.4
+            )
+            st.plotly_chart(pie_chart_receitas, use_container_width=True)
+
+    with col3:
+        if not filtered_data.empty:
+            investimentos_data = filtered_data[filtered_data["tipo"] == "Investimentos"]
+            pie_chart_investimentos = px.pie(
+                investimentos_data,
+                names="categoria",
+                values="valor",
+                title="Distribuição de Investimentos por Categoria",
+                labels={"categoria": "Categoria", "valor": "Valor (R$)"},
+                hole=0.4
+            )
+            st.plotly_chart(pie_chart_investimentos, use_container_width=True)
+
+
+    st.subheader("Gastos, Receitas e Investimentos por Categoria por Mês")
+
+    if not filtered_data.empty:
+        filtered_data['mês'] = filtered_data['data'].dt.to_period('M').astype(str)
+
+        gastos_data = filtered_data[filtered_data["tipo"] == "Gastos"]
+        if not gastos_data.empty:
+            gastos_por_categoria = gastos_data.groupby(['mês', 'categoria'])['valor'].sum().reset_index()
+            bar_chart_gastos = px.bar(
+                gastos_por_categoria,
+                x='mês',
+                y='valor',
+                color='categoria',
+                title='Gastos por Categoria por Mês',
+                labels={"valor": "Valor (R$)", "mês": "Mês"},
+                barmode='group'
+            )
+            st.plotly_chart(bar_chart_gastos, use_container_width=True)
+
+        receitas_data = filtered_data[filtered_data["tipo"] == "Receitas"]
+        if not receitas_data.empty:
+            receitas_por_categoria = receitas_data.groupby(['mês', 'categoria'])['valor'].sum().reset_index()
+            bar_chart_receitas = px.bar(
+                receitas_por_categoria,
+                x='mês',
+                y='valor',
+                color='categoria',
+                title='Receitas por Categoria por Mês',
+                labels={"valor": "Valor (R$)", "mês": "Mês"},
+                barmode='group'
+            )
+            st.plotly_chart(bar_chart_receitas, use_container_width=True)
+
+        investimentos_data = filtered_data[filtered_data["tipo"] == "Investimentos"]
+        if not investimentos_data.empty:
+            investimentos_por_categoria = investimentos_data.groupby(['mês', 'categoria'])['valor'].sum().reset_index()
+            bar_chart_investimentos = px.bar(
+                investimentos_por_categoria,
+                x='mês',
+                y='valor',
+                color='categoria',
+                title='Investimentos por Categoria por Mês',
+                labels={"valor": "Valor (R$)", "mês": "Mês"},
+                barmode='group'
+            )
+            st.plotly_chart(bar_chart_investimentos, use_container_width=True)
 
 elif selected == "Relatórios":
     st.subheader("Relatórios Financeiros")

@@ -1,13 +1,17 @@
 {
     "categorias": {
         "receitas": [
-            "Receita1"
+            "Trabalho Principal",
+            "Renda Extra"
         ],
         "gastos": [
-            "Gasto1"
+            "Aluguel",
+            "Alimentação",
+            "Gastos Livres"
         ],
         "investimentos": [
-            "Investimento1"
+            "Poupança",
+            "Fundos Imobiliários"
         ]
     }
 }
